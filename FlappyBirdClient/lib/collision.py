@@ -13,11 +13,15 @@ import common
 # contactListener
 collision_manager = None
 collision_func = None
-
-def addCollision(gameScene, gameLayer, spriteBird, pipes, land_1, land_2):
-    global collision_manager, collision_func, upPipeCollided, isCollided, pipeDistance
+g_type = None
+def addCollision(gameScene, gameLayer, spriteBird, pipes, land_1, land_2, gtype='normal'):
+    global collision_manager, collision_func, upPipeCollided, isCollided, pipeDistance, g_type
     #设置land区域对应的刚体
-    landSprite = CollidableRectSprite("land", (common.visibleSize["width"])/2, (atlas["land"]["height"] / 4 - 3), (common.visibleSize["width"])/2, (atlas["land"]["height"])/2)
+    g_type = gtype
+    if gtype == 'normal':
+        landSprite = CollidableRectSprite("land", (common.visibleSize["width"])/2, (atlas["land"]["height"] / 4 - 3), (common.visibleSize["width"])/2, (atlas["land"]["height"])/2)
+    else:
+        landSprite = CollidableRectSprite("land", (common.visibleSize["width"])/2, common.visibleSize["height"], (common.visibleSize["width"])/2,2)
 
     #pipe对应的刚体在pipe.py中设置
     pipes = getPipes()
@@ -37,6 +41,7 @@ def addCollision(gameScene, gameLayer, spriteBird, pipes, land_1, land_2):
         collision_manager.add(pipes[i].get("upPipe"))
 
     def collisionHandler(dt):
+        global g_type
         global isCollided, upPipeCollided, collision_func
         spriteBird.cshape.center = Vector2(spriteBird.position[0], spriteBird.position[1])
         for i in range(0, pipeCount):
@@ -64,12 +69,12 @@ def addCollision(gameScene, gameLayer, spriteBird, pipes, land_1, land_2):
             isCollided = True
 
         if isCollided:
-            gameOver(gameScene, land_1, land_2, spriteBird, upPipeCollided)
+            gameOver(gameScene, land_1, land_2, spriteBird, upPipeCollided,g_type)
 
     collision_func = collisionHandler
     gameScene.schedule(collisionHandler)
 
-def gameOver(gameScene, land_1, land_2, spriteBird, upPipeCollided):
+def gameOver(gameScene, land_1, land_2, spriteBird, upPipeCollided,gtype):
     global collision_func
     land_1.stop()
     land_2.stop()
@@ -81,6 +86,6 @@ def gameOver(gameScene, land_1, land_2, spriteBird, upPipeCollided):
         gameScene.unschedule(collision_func)
         spriteBird.stop()
         import game_controller
-        game_controller.backToMainMenu()
+        game_controller.backToMainMenu(gtype)
 
     

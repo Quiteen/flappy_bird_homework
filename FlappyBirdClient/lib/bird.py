@@ -30,6 +30,7 @@ def creatBird():
     return spriteBird
 
 #handling touch events
+
 class birdTouchHandler(cocos.layer.Layer):
     is_event_handler = True     #: enable director.window events
 
@@ -48,12 +49,24 @@ class birdTouchHandler(cocos.layer.Layer):
         #点击屏幕时，如果小鸟没有到达游戏顶部，给它一个上升速度
         if self.spriteBird.position[1] < common.visibleSize["height"]-20:
             self.spriteBird.velocity = (0, upSpeed)
+class birdTouchHandler2(cocos.layer.Layer):
+    is_event_handler = True     #: enable director.window events
 
+    def __init__(self, spriteBird):
+        super( birdTouchHandler2, self ).__init__()
+        self.spriteBird = spriteBird
+
+    def on_mouse_press (self, x, y, buttons, modifiers):
+        if self.spriteBird.position[1] > atlas["land"]["height"]/4+100:
+                self.spriteBird.velocity = (0, -upSpeed)
 HANDLER_NAME = "birdTouchHandler"
 
-def addTouchHandler(gameScene, isGamseStart, spriteBird):
+def addTouchHandler(gameScene, isGamseStart, spriteBird,gtype = 'normal'):
     if isGamseStart:
-        handler = birdTouchHandler(spriteBird)
+        if gtype == 'normal':
+            handler = birdTouchHandler(spriteBird)
+        else:
+            handler = birdTouchHandler2(spriteBird)
         gameScene.add(handler, z=50, name=HANDLER_NAME)
 
 #remove touch events

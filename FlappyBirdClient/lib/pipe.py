@@ -26,14 +26,15 @@ downPipeYPosition = {}    #朝下pipe的最下侧的y坐标
 upPipeYPosition = {}  #朝上pipe的最上侧的y坐标
 pipeIndex = 0
 speed = 2
+g_level = None
 
 class ActorModel(object):
     def __init__(self, cx, cy, half_width, half_height,name):
             self.cshape = CircleShape(eu.Vector2(center_x, center_y), radius)
             self.name = name
 def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
-    global g_score, movePipeFunc, calScoreFunc
-
+    global g_score, movePipeFunc, calScoreFunc,g_level
+    g_level = level
     def initPipe():
         for i in range(0, pipeCount):
             # 把downPipe和upPipe组合为singlePipe
@@ -51,7 +52,6 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
             pipeState[i] = PIPE_NEW
             upPipeYPosition[i] = heightOffset + pipeHeight / 2
             downPipeYPosition[i] = heightOffset + pipeHeight / 2 + pipeDistance
-
     def movePipe(dt):
         global heightOffset, speed
         if level == "easy":
@@ -77,11 +77,9 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
                 next = i - 1
                 if next < 0: next = pipeCount - 1
                 pipeNode.position = (pipes[next].position[0] + pipeInterval, heightOffset)
-                print heightOffset
                 upPipeYPosition[i] = heightOffset + pipeHeight / 2
                 downPipeYPosition[i] = heightOffset + pipeHeight / 2 + pipeDistance
                 break
-
     def calScore(dt):
         global g_score
         birdXPosition = spriteBird.position[0]
@@ -98,7 +96,6 @@ def createPipes(layer, gameScene, spriteBird, score, level = "easy"):
     gameScene.schedule(movePipe)
     gameScene.schedule(calScore)
     return pipes
-
 
 def removeMovePipeFunc(gameScene):
     global movePipeFunc

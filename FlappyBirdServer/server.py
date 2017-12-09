@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 import socket, select, netstream, random, pickle, os, traceback
-
+from functions import *
 HOST = "127.0.0.1"
 disconnected_list = []#断开连接的客户端列表
 onlineUser = {}
@@ -51,11 +51,30 @@ while inputs:
 						disconnected_list.append(r.getpeername())
 				else:  # 根据收到的request发送response
 					#公告
-					if 'notice'in recvData:
+					if recvData['type'] == 'notice':
 						number = recvData['sid']
 						print 'receive notice request from user id:', number
 						sendData = {"notice_content": "This is a notice from server. Good luck!"}
 						netstream.send(onlineUser[number]['connection'], sendData)
+					if recvData['type'] == 'login':
+						number = recvData['sid']
+						username, password = recvData['username'], recvData['password']
+						sendData = login(username, password)
+						netstream.send(onlineUser[number]['connection'], sendData)
+						print 'receive login from user id:', number
+
+					if recvData['type'] == 'register':
+						number = recvData['sid']
+						username, password = recvData['username'], recvData['password']
+						sendData = register(username, password)
+						netstream.send(onlineUser[number]['connection'], sendData)
+						print 'receive register from user id:', number
+
+					if recvData['type'] == 'score':
+						number = recvData['sid']
+						print 'receive score from user id:', number
+						sendData = {"notice_content": str(recvData['score'])}       #测试用
+						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
 	except Exception:
 		traceback.print_exc()
 		print 'Error: socket 链接异常'

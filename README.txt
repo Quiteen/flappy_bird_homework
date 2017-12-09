@@ -11,5 +11,5 @@
 1.[客户端]逻辑代码在flappy_bird\lib目录下。
 2.[客户端]资源文件在flappy_bird\data目录下。
 3.[服务端]代码在flappy_bird\FlappyBirdServer目录下。
-
 -JerryG2017
+-mirror post
