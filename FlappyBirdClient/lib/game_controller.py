@@ -36,7 +36,7 @@ Rank1Scores = {}
 Rank2Scores = {}
 Rank3Scores = {}
 pattern = -1
-
+scorerank = None
 def initGameLayer():
     global spriteBird, gameLayer, land_1, land_2
     # 创建场景
@@ -64,7 +64,10 @@ def initGameLayer():
     gameLayer.add(land_2, z=10)
     # 将gameLayer添加到scene中
     gameScene.add(gameLayer)
-
+    if isOnline:
+        ol = createAtlasSprite("online")
+        ol.position = (common.visibleSize["width"] * 18 / 100, common.visibleSize["height"] * 97 / 100)
+        gameLayer.add(ol, name="online", z=100)
 def game_start(_gameScene):
     global gameScene
     # 给gameScene赋值
@@ -82,9 +85,7 @@ def login_success():
     removeLayer("content")
     removeLayer("username")
     removeLayer("password")
-    ol = createAtlasSprite("online")
-    ol.position = (common.visibleSize["width"]*18/100, common.visibleSize["height"]*97/100)
-    gameLayer.add(ol, name="online", z=100)
+    initGameLayer()
     start_botton = SingleGameStartMenu()
     gameLayer.add(start_botton, z=20, name="start_button")
 
@@ -206,6 +207,8 @@ class RestartMenu(Layer):
         menu.create_menu(items, selected_effect=shake(), unselected_effect=shake_back())
         setMenuItemPos(menu, positions)
         self.add(menu, z=52)
+
+        #保存分数
         import pipe
         now_score = pipe.g_score
         level = pipe.g_level
@@ -241,6 +244,14 @@ class RestartMenu(Layer):
             data.close()
         except Exception, e:
             print("score.txt写入错误")
+
+        #上传分数
+        if isOnline:
+            global g_username
+            if pattern == 0:
+                gametype = level
+            else: gametype = 'reverse'
+            post_score(now_score, g_username, gametype)
         setPanelScores(now_score)
         setBestScores(int(f[0].encode("utf-8")))
 
@@ -259,9 +270,12 @@ class RestartMenu(Layer):
         start_botton = SingleGameStartMenu()
         gameLayer.add(start_botton, z=20, name="start_button")
     def showscore(self):
-        global pattern
+        global pattern, scorerank
     	scorerank = Layer()
-    	rank = createAtlasSprite("scorerank")
+
+        if isOnline: rank = createAtlasSprite("scorerank_online")
+        else: rank = createAtlasSprite("scorerank")
+
     	rank.position = (common.visibleSize["width"]/2, common.visibleSize["height"]/2)
     	scorerank.add(rank,z=60)
     	turnback = Menu()
@@ -272,22 +286,31 @@ class RestartMenu(Layer):
     			]
     	turnback.create_menu(items,selected_effect=zoom_in(),unselected_effect=zoom_out())
         scorerank.add(turnback,z = 61)
+        #获得分数信息
         import pipe
         level = pipe.g_level
-        try:
+        if isOnline:    #在线
             if pattern == 0:
-                data = open(level + '_score.txt', 'r')
-            else:
-                data = open('reverse.txt', 'r')
-            f = data.read().splitlines()
-            data.close()
-        except Exception, e:
-            data = None
-            f = []
-        setRank1Scores(scorerank,int(f[0].encode("utf-8")))
-        setRank2Scores(scorerank,int(f[1].encode("utf-8")))
-        setRank3Scores(scorerank,int(f[2].encode("utf-8")))
-    	gameLayer.add(scorerank,z = 60,name = "scorerank")
+                gametype = level
+            else: gametype = 'reverse'
+            request_score(gametype)
+        else:           #离线
+            try:
+                if pattern == 0:
+                    data = open(level + '_score.txt', 'r')
+                else:
+                    data = open('reverse.txt', 'r')
+                f = data.read().splitlines()
+                data.close()
+            except Exception, e:
+                data = None
+                f = []
+            while len(f) < 3:
+                f.append('0')
+            setRank1Scores(scorerank,int(f[0].encode("utf-8")))
+            setRank2Scores(scorerank,int(f[1].encode("utf-8")))
+            setRank3Scores(scorerank,int(f[2].encode("utf-8")))
+        gameLayer.add(scorerank,z = 60,name = "scorerank")
 
 def goback():
 	removeLayer("scorerank")
@@ -505,6 +528,43 @@ def setRank1Scores(scorerank,score):
         scorerank.add(s, z=62)
         Rank1Scores[i] = s
         i = i + 1
+
+def setRank1Name(name):
+    global scorerank
+    removeLayer("name1")
+    label = Label(name,
+                  font_name='MarkerFelt-Thin',
+                  font_size=15,
+                  color=(0, 0, 0, 255),
+                  width=common.visibleSize["width"] / 2,
+                  multiline=True,
+                  anchor_x='center', anchor_y='center')
+    label.position = (common.visibleSize["width"] *31/50, common.visibleSize["height"]* 50/66)
+    scorerank.add(label, z=70, name="name1")
+def setRank2Name(name):
+    global scorerank
+    removeLayer("name2")
+    label = Label(name,
+                  font_name='MarkerFelt-Thin',
+                  font_size=15,
+                  color=(0, 0, 0, 255),
+                  width=common.visibleSize["width"] / 2,
+                  multiline=True,
+                  anchor_x='center', anchor_y='center')
+    label.position = (common.visibleSize["width"] *31/50, common.visibleSize["height"]* 40/66)
+    scorerank.add(label, z=70, name="name2")
+def setRank3Name(name):
+    global scorerank
+    removeLayer("name3")
+    label = Label(name,
+                  font_name='MarkerFelt-Thin',
+                  font_size=15,
+                  color=(0, 0, 0, 255),
+                  width=common.visibleSize["width"] / 2,
+                  multiline=True,
+                  anchor_x='center', anchor_y='center')
+    label.position = (common.visibleSize["width"] *31/50, common.visibleSize["height"]* 30/66)
+    scorerank.add(label, z=70, name="name3")
 def setMenuItemPos(menu, positions):
     width, height = director.get_window_size()
     for idx, i in enumerate(menu.children):

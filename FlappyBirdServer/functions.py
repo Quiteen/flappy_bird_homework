@@ -52,3 +52,55 @@ def login(username, password):
 				break
 	sendData = {"response": ret}
 	return sendData
+
+def save_score(score, username, gametype):
+	uname_list = []
+	score_list = []
+	try:
+		data = open(gametype + '_score.txt', 'r')
+		for i in data.read().splitlines():
+			uname_list.append(i.split('@')[0])
+			score_list.append(i.split('@')[1])
+		data.close()
+	except Exception, e:
+		uname_list = []
+		score_list = []
+	while len(uname_list) < 3:
+		uname_list.append(" ")
+	while len(score_list) < 3:
+		score_list.append("0")
+	if score > int(score_list[0].encode("utf-8")):
+		score_list[2], score_list[1], score_list[0] = score_list[1], score_list[0], str(score)
+		uname_list[2], uname_list[1], uname_list[0] = uname_list[1], uname_list[0], username
+	elif score > int(score_list[1].encode("utf-8")):
+		score_list[2], score_list[1] = score_list[1], str(score)
+		uname_list[2], uname_list[1] = uname_list[1], username
+	elif score > int(score_list[2].encode("utf-8")):
+		score_list[2] = str(score)
+		uname_list[2] = username
+	try:
+		data = open(gametype + '_score.txt', 'w+')
+		for i in range(0, 3):
+			data.write(uname_list[i] + "@" + str(score_list[i]) + '\n')
+		data.close()
+	except Exception, e:
+		print("score.txt写入错误")
+
+def get_score(gametype):
+	uname_list = []
+	score_list = []
+	#
+	# try:
+	data = open(gametype + '_score.txt', 'r')
+	for i in data.read().splitlines():
+		uname_list.append(i.split('@')[0])
+		score_list.append(i.split('@')[1])
+	data.close()
+	# except Exception, e:
+	# 	uname_list = []
+	# 	score_list = []
+	while len(uname_list) < 3:
+		uname_list.append(" ")
+	while len(score_list) < 3:
+		score_list.append("0")
+	return uname_list, score_list

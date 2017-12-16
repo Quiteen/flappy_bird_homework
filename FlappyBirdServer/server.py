@@ -72,8 +72,20 @@ while inputs:
 
 					if recvData['type'] == 'score':
 						number = recvData['sid']
+						score = recvData['score']
+						username = recvData['username']
+						gametype = recvData['gametype']
+						save_score(score, username, gametype)
 						print 'receive score from user id:', number
-						sendData = {"notice_content": str(recvData['score'])}       #测试用
+						sendData = {"response": username + ' ' + str(recvData['score'])}       #测试用
+						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
+
+					if recvData['type'] == 'request_score':
+						number = recvData['sid']
+						gametype = recvData['gametype']
+						users, score = get_score(gametype)
+						print 'receive request_score from user id:', number
+						sendData = {"users": users, "score":  score}       #测试用
 						netstream.send(onlineUser[number]['connection'], sendData)  #测试用
 	except Exception:
 		traceback.print_exc()
